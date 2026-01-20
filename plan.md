@@ -41,6 +41,107 @@ Worker's Phone (WhatsApp)
 - [ ] Set up multi-tenancy (likely using `organization_id` scope)
 - [ ] Write Pest tests for models and relationships
 
+## Database Schema
+
+### 1. `organizations` Table
+Multi-tenant foundation:
+```sql
+- id (bigint, primary key)
+- name (varchar, company name)
+- email (varchar, unique)
+- phone (varchar, nullable)
+- address (text, nullable)
+- created_at (timestamp)
+- updated_at (timestamp)
+```
+
+### 2. Extend `users` Table
+Add organization and role fields:
+```sql
+- organization_id (bigint, foreign key to organizations.id)
+- phone (varchar, WhatsApp phone number)
+- role (enum: admin, manager, worker)
+- created_at (timestamp)
+- updated_at (timestamp)
+```
+
+### 3. `projects` Table
+Construction sites:
+```sql
+- id (bigint, primary key)
+- organization_id (bigint, foreign key)
+- name (varchar, project name)
+- description (text, nullable)
+- site_address (text)
+- status (enum: planning, active, completed, on_hold)
+- start_date (date)
+- end_date (date, nullable)
+- created_at (timestamp)
+- updated_at (timestamp)
+```
+
+### 4. `site_events` Table
+Core table for logged incidents:
+```sql
+- id (bigint, primary key)
+- organization_id (bigint, foreign key)
+- project_id (bigint, foreign key)
+- user_id (bigint, foreign key, who reported it)
+- event_type (enum: material_delivery, incident, progress_update, delay, safety_issue, note)
+- title (varchar, AI-generated summary)
+- description (text, full details)
+- ai_extracted_data (json, structured data from AI)
+- severity (enum: low, medium, high, critical)
+- status (enum: open, in_progress, resolved, closed)
+- occurred_at (timestamp, when the event happened)
+- created_at (timestamp)
+- updated_at (timestamp)
+```
+
+### 5. `whatsapp_messages` Table
+Message history:
+```sql
+- id (bigint, primary key)
+- organization_id (bigint, foreign key)
+- conversation_id (varchar, groups related messages)
+- user_id (bigint, foreign key, nullable for unknown numbers)
+- message_id (varchar, WhatsApp message ID, unique)
+- direction (enum: inbound, outbound)
+- message_type (enum: text, image, audio, document)
+- content (text, message content)
+- media_url (varchar, nullable)
+- whatsapp_message_status (enum: sent, delivered, read, failed)
+- ai_processed_at (timestamp, nullable)
+- received_at (timestamp)
+- created_at (timestamp)
+- updated_at (timestamp)
+```
+
+### 6. `ai_conversations` Table
+Conversation threads:
+```sql
+- id (bigint, primary key)
+- organization_id (bigint, foreign key)
+- user_id (bigint, foreign key)
+- conversation_id (varchar, unique identifier)
+- status (enum: active, archived, closed)
+- last_message_at (timestamp)
+- message_count (integer, default 0)
+- created_at (timestamp)
+- updated_at (timestamp)
+```
+
+## Key Relationships
+- `organizations` → `users` (one-to-many)
+- `organizations` → `projects` (one-to-many)
+- `organizations` → `site_events` (one-to-many)
+- `organizations` → `whatsapp_messages` (one-to-many)
+- `organizations` → `ai_conversations` (one-to-many)
+- `projects` → `site_events` (one-to-many)
+- `users` → `site_events` (one-to-many)
+- `users` → `whatsapp_messages` (one-to-many)
+- `ai_conversations` → `whatsapp_messages` (one-to-many)
+
 ### Authentication & Authorization
 - [ ] Implement Filament authentication
 - [ ] Create user roles (Admin, Manager, Worker)
