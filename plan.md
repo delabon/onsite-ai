@@ -50,7 +50,7 @@ Multi-tenant foundation:
 - name (varchar, company name)
 - email (varchar, unique)
 - phone (varchar, nullable)
-- address (text, nullable)
+- address (jsonb, nullable)
 - created_at (timestamp)
 - updated_at (timestamp)
 ```
