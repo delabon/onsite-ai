@@ -1,0 +1,250 @@
+# Business Model - Simple Breakdown
+
+**The Problem:**
+Construction workers on site need to record what's happening - incidents, progress updates, delays, materials delivered, etc. But they're busy, dirty, wearing gloves, and don't want to fill out forms or open special apps.
+
+**The Solution:**
+Workers just text WhatsApp like they're messaging a coworker. An AI assistant understands what they're saying, extracts the important info, and logs everything automatically.
+
+**Example:**
+- Worker texts: "Concrete delivered to site 3, 5 trucks, driver was late"
+- AI captures: Site ID, material type, quantity, timestamp, notes issue
+- Data appears in company's project management system automatically
+
+## The Technology in Simple Terms
+
+```
+Worker's Phone (WhatsApp)
+         ↓
+    AI Brain (reads message, understands intent)
+         ↓
+    Database (stores structured data)
+         ↓
+    Admin Dashboard (managers see everything organized)
+         ↓
+    Other Tools (connects to existing software)
+```
+# MVP Todo List
+
+## Phase 1: Core Foundation (Week 1-2)
+
+### Database & Models
+- [x] Set up Laravel 12 project with Sail
+- [ ] Create database schema:
+    - [ ] `organizations` table (multi-tenant)
+    - [ ] `users` table (field workers)
+    - [ ] `projects` table (construction sites)
+    - [ ] `site_events` table (logged incidents/notes)
+    - [ ] `whatsapp_messages` table (message history)
+    - [ ] `ai_conversations` table (conversation threads)
+- [ ] Create Eloquent models with relationships
+- [ ] Set up multi-tenancy (likely using `organization_id` scope)
+- [ ] Write Pest tests for models and relationships
+
+### Authentication & Authorization
+- [ ] Implement Filament authentication
+- [ ] Create user roles (Admin, Manager, Worker)
+- [ ] Set up Laravel Policies for access control
+- [ ] Test multi-tenant data isolation
+
+## Phase 2: WhatsApp Integration (Week 2-3)
+
+### WhatsApp Business API Setup
+- [ ] Register WhatsApp Business account
+- [ ] Set up webhook endpoint (`/webhooks/whatsapp`)
+- [ ] Create WhatsApp service class using Saloon
+- [ ] Handle incoming message webhook
+- [ ] Handle message status updates
+- [ ] Implement message sending functionality
+- [ ] Write Pest tests for webhook handlers
+
+### Message Processing Pipeline
+- [ ] Create queue job: `ProcessIncomingWhatsAppMessage`
+- [ ] Implement message validation
+- [ ] Store incoming messages in database
+- [ ] Create conversation threading logic
+- [ ] Handle different message types (text, image, audio)
+- [ ] Write comprehensive Pest tests
+
+## Phase 3: AI Agent Development (Week 3-4)
+
+### AI Integration
+- [ ] Set up Anthropic/OpenRouter API client
+- [ ] Create base AI service class
+- [ ] Implement conversation context management
+- [ ] Create prompt templates for:
+    - [ ] Site event logging
+    - [ ] Information extraction
+    - [ ] Intent classification
+
+### AI Tools (Function Calling)
+- [ ] Tool: `log_site_event` - Record incident/note
+- [ ] Tool: `get_project_info` - Retrieve project details
+- [ ] Tool: `list_projects` - Show available projects
+- [ ] Tool: `create_note` - Save general note
+- [ ] Implement tool execution handler
+- [ ] Write Pest tests for each tool
+
+### AI Response Processing
+- [ ] Parse AI tool calls
+- [ ] Execute tools and get results
+- [ ] Format responses for WhatsApp
+- [ ] Handle errors gracefully
+- [ ] Test full conversation flows
+
+## Phase 4: Admin Panel (Week 4-5)
+
+### Filament Resources
+- [ ] **Organization Resource:**
+    - [ ] List organizations
+    - [ ] Create/edit organization
+    - [ ] View subscription status
+
+- [ ] **User Resource:**
+    - [ ] List users (scoped to organization)
+    - [ ] Create/edit users
+    - [ ] Assign roles
+    - [ ] View user activity
+
+- [ ] **Project Resource:**
+    - [ ] List projects
+    - [ ] Create/edit projects
+    - [ ] Assign workers to projects
+    - [ ] View project timeline
+
+- [ ] **Site Events Resource:**
+    - [ ] List all events (filterable)
+    - [ ] View event details
+    - [ ] Edit/annotate events
+    - [ ] Export events (CSV/PDF)
+    - [ ] Search and filter (date, project, type, worker)
+
+### Custom Filament Pages
+- [ ] Dashboard with key metrics:
+    - [ ] Active projects count
+    - [ ] Events logged today/week
+    - [ ] Active workers
+    - [ ] Recent activity feed
+- [ ] Conversation history viewer
+- [ ] Analytics page (basic charts using Filament widgets)
+
+### Filament Actions
+- [ ] Bulk actions for site events (export, categorize)
+- [ ] Send WhatsApp message to worker
+- [ ] Archive/unarchive projects
+
+## Phase 5: Core Features (Week 5-6)
+
+### Livewire Components
+- [ ] Real-time event feed component
+- [ ] Conversation viewer component
+- [ ] Project selector component
+- [ ] Worker status indicator
+
+### Background Jobs
+- [ ] `SendWhatsAppMessage` - Queue outbound messages
+- [ ] `ProcessAIResponse` - Handle AI completions
+- [ ] `SyncProjectData` - Keep data fresh
+- [ ] `GenerateDailyReport` - Automated summaries
+- [ ] Write Pest tests for all jobs
+
+### Notifications
+- [ ] Laravel notification system setup
+- [ ] Event logged notification
+- [ ] Worker joined project notification
+- [ ] Daily summary notification (email)
+
+## Phase 6: Testing & Polish (Week 6-7)
+
+### Comprehensive Testing
+- [ ] Feature tests for complete workflows:
+    - [ ] Worker sends message → AI processes → Event created
+    - [ ] Admin views events in panel
+    - [ ] Multi-tenant isolation works
+- [ ] Browser tests (Pest with Dusk) for critical paths
+- [ ] API integration tests
+- [ ] Load testing for WhatsApp webhook
+
+### Data & Validation
+- [ ] Form requests for all inputs
+- [ ] Validation rules for AI-extracted data
+- [ ] Error handling and logging
+- [ ] Rate limiting on webhooks
+
+### Documentation
+- [ ] README with setup instructions
+- [ ] API documentation (for future integrations)
+- [ ] User guide for admins
+- [ ] Worker onboarding flow (in WhatsApp)
+
+## Phase 7: Deployment & Monitoring (Week 7-8)
+
+### Infrastructure
+- [ ] Set up production environment (Laravel Forge/Vapor)
+- [ ] Configure queues (Redis/database)
+- [ ] Set up scheduled tasks (cron jobs)
+- [ ] Configure logging (Laravel Log or external)
+- [ ] Set up error tracking (Sentry/Flare)
+
+### Security
+- [ ] Webhook signature verification (WhatsApp)
+- [ ] API rate limiting
+- [ ] CSRF protection
+- [ ] SQL injection prevention (Eloquent does this)
+- [ ] XSS prevention (Blade/Livewire does this)
+
+### Monitoring
+- [ ] Health check endpoint
+- [ ] Queue monitoring
+- [ ] AI API usage tracking
+- [ ] WhatsApp message volume tracking
+- [ ] Set up alerts for failures
+
+## MVP Feature Checklist
+
+### Must-Have for Launch
+- [x] Worker can send WhatsApp message
+- [x] AI understands and logs site events
+- [x] Events appear in admin panel
+- [x] Multi-tenant (multiple companies can use it)
+- [x] Basic authentication and roles
+- [x] Conversation history visible
+
+### Nice-to-Have (Post-MVP)
+- [ ] Image recognition (worker sends photo, AI describes it)
+- [ ] Voice message transcription
+- [ ] Integration with project management tools
+- [ ] Advanced analytics dashboard
+- [ ] Mobile-responsive admin panel
+- [ ] Scheduled reports
+- [ ] Custom event types per organization
+
+## Success Metrics for MVP
+
+**Technical:**
+- Message processing < 3 seconds
+- 99% AI classification accuracy
+- Zero data leaks between tenants
+- Test coverage for critical features
+
+**Business:**
+- 3-5 pilot construction companies signed up
+- Workers sending 10+ messages per day
+- Admins logging in 2+ times per week
+- Positive feedback from field workers
+
+---
+
+## Estimated Timeline
+
+**Realistic MVP:** 6-8 weeks with one senior developer
+**With AI assistance (Claude Code):** 4-6 weeks
+**Aggressive timeline:** 3-4 weeks (cutting testing/polish)
+
+## Key Success Factors
+
+1. **Start with WhatsApp + AI working well** - This is your core value
+2. **Keep admin panel simple** - Don't over-engineer Filament resources
+3. **Test multi-tenancy early** - Data isolation is critical
+4. **Use AI to write tests** - Maintain velocity while keeping quality high
+5. **Real construction company feedback ASAP** - Build what they need, not what you think they need
