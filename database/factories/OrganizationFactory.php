@@ -22,7 +22,17 @@ final class OrganizationFactory extends Factory
             'name' => fake()->company(),
             'email' => fake()->unique()->companyEmail(),
             'phone' => fake()->optional()->phoneNumber(),
-            'address' => fake()->optional()->streetAddress(),
+            'address' => [
+                'street' => fake()->streetAddress(),
+                'city' => fake()->city(),
+                'state' => fake()->randomElement([
+                    'NY',
+                    'CA',
+                    'TX',
+                ]),
+                'country' => fake()->countryCode(),
+                'zip' => fake()->postcode(),
+            ],
         ];
     }
 }
