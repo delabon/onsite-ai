@@ -6,12 +6,13 @@ use App\Jobs\Whatsapp\ProcessMessage;
 use App\Services\Whatsapp\MessageClassifier;
 use App\Services\Whatsapp\MessageHandler;
 use App\Services\Whatsapp\MessageParser;
+use App\Services\Whatsapp\WorkflowRouter;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 it('processes message successfully', function () {
     Http::fake([
-        'http://localhost:11434/api/generate' => Http::response(['response' => '{"category":"question","confidence":"high","reason":"test"}'], 200),
+        'http://ollama:11434/api/generate' => Http::response(['response' => '{"category":"question","confidence":"high","reason":"test"}'], 200),
     ]);
 
     $payload = json_decode(file_get_contents(__DIR__.'/../../../Payloads/Whatsapp/text-message.json'), true);
@@ -19,15 +20,17 @@ it('processes message successfully', function () {
     $job = new ProcessMessage($payload);
 
     Log::shouldReceive('info')->with('Message stored', Mockery::any())->once();
-    Log::shouldReceive('info')->with('Workflow triggered', Mockery::any())->once();
+    Log::shouldReceive('info')->with('Workflow routed', Mockery::any())->once();
+    Log::shouldReceive('info')->with('Routing to AI agent with RAG', Mockery::any())->once();
     Log::shouldReceive('info')->with('WhatsApp message processed successfully', [
         'payload' => $payload,
     ])->once();
 
     $job->handle(
-        app(MessageParser::class),
-        app(MessageClassifier::class),
-        app(MessageHandler::class)
+        new MessageParser,
+        new MessageClassifier,
+        new MessageHandler,
+        new WorkflowRouter
     );
 });
 
@@ -41,8 +44,9 @@ it('handles parsing failure', function () {
     ]);
 
     $job->handle(
-        app(MessageParser::class),
-        app(MessageClassifier::class),
-        app(MessageHandler::class)
+        new MessageParser,
+        new MessageClassifier,
+        new MessageHandler,
+        new WorkflowRouter
     );
 });
