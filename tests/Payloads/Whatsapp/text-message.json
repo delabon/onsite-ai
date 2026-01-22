@@ -1,0 +1,39 @@
+{
+    "object": "whatsapp_business_account",
+    "entry": [
+        {
+            "id": "WHATSAPP_BUSINESS_ACCOUNT_ID",
+            "changes": [
+                {
+                    "value": {
+                        "messaging_product": "whatsapp",
+                        "metadata": {
+                            "display_phone_number": "15551234567",
+                            "phone_number_id": "123456789012345"
+                        },
+                        "contacts": [
+                            {
+                                "profile": {
+                                    "name": "John Doe"
+                                },
+                                "wa_id": "353861234567"
+                            }
+                        ],
+                        "messages": [
+                            {
+                                "from": "353861234567",
+                                "id": "wamid.HBgNMzUzODYxMjM0NTY3FQIAERgSQ0FCN",
+                                "timestamp": "1642521600",
+                                "type": "text",
+                                "text": {
+                                    "body": "Worker fell from scaffolding at Site A"
+                                }
+                            }
+                        ]
+                    },
+                    "field": "messages"
+                }
+            ]
+        }
+    ]
+}
