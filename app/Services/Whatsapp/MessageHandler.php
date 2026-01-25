@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\Whatsapp;
 
+use App\DataTransferObjects\ClassificationResult;
 use App\DataTransferObjects\ParsedMessage;
 use Illuminate\Support\Facades\Log;
 
 final class MessageHandler
 {
-    public function storeMessage(ParsedMessage $parsedMessage, array $classification): void
+    public function storeMessage(ParsedMessage $parsedMessage, ClassificationResult $classification): void
     {
         // TODO: Save to database
 
@@ -18,20 +19,7 @@ final class MessageHandler
             'from' => $parsedMessage->from,
             'type' => $parsedMessage->type,
             'message' => $parsedMessage->body,
-            'category' => $classification['category'],
-        ]);
-    }
-
-    public function triggerWorkflow(array $parsedMessage, array $classification): void
-    {
-        // TODO: Trigger an action based on the classification in a queue
-
-        // For now, just log
-        Log::info('Workflow triggered', [
-            'from' => $parsedMessage['from'],
-            'type' => $parsedMessage['type'],
-            'message' => $parsedMessage['body'],
-            'category' => $classification['category'],
+            'category' => $classification->category->value,
         ]);
     }
 }

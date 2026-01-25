@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Whatsapp;
 
+use App\DataTransferObjects\ClassificationResult;
 use App\Enums\MessageCategory;
 use Exception;
 use Illuminate\Support\Facades\Http;
@@ -33,7 +34,7 @@ final class MessageClassifier
     /**
      * Classify a WhatsApp message into predefined categories
      */
-    public function classify(string $message): array
+    public function classify(string $message): ClassificationResult
     {
         $prompt = $this->buildClassificationPrompt($message);
 
@@ -56,22 +57,22 @@ final class MessageClassifier
             $result = $response->json();
             $classification = $this->parseClassification($result['response'] ?? '');
 
-            return [
-                'success' => true,
-                'category' => $classification['category'],
-                'confidence' => $classification['confidence'],
-                'raw_response' => $result['response'],
-                'model_used' => $this->ollamaLlm,
-            ];
+            return new ClassificationResult(
+                success: true,
+                category: MessageCategory::from($classification['category']),
+                confidence: $classification['confidence'],
+                rawResponse: $result['response'],
+                modelUsed: $this->ollamaLlm
+            );
         } catch (Exception $e) {
             Log::error('Classification failed: '.$e->getMessage());
 
-            return [
-                'success' => false,
-                'category' => MessageCategory::Unknown->value,
-                'confidence' => 0,
-                'error' => $e->getMessage(),
-            ];
+            return new ClassificationResult(
+                success: false,
+                category: MessageCategory::Unknown,
+                confidence: 'unknown',
+                error: $e->getMessage(),
+            );
         }
     }
 

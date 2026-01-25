@@ -1,16 +1,13 @@
 <?php
 
+use App\DataTransferObjects\ClassificationResult;
 use App\DataTransferObjects\ParsedMessage;
+use App\Enums\MessageCategory;
 use App\Enums\MessageType;
 use App\Services\Whatsapp\WorkflowRouter;
 
 it('routes safety incident to urgent notification workflow', function () {
     $router = new WorkflowRouter;
-
-    $classification = [
-        'category' => 'safety_incident',
-        'confidence' => 'high',
-    ];
 
     $message = new ParsedMessage(
         from: '353861234567',
@@ -18,7 +15,13 @@ it('routes safety incident to urgent notification workflow', function () {
         body: 'Worker injured'
     );
 
-    $result = $router->route($classification, $message);
+    $classification = new ClassificationResult(
+        success: true,
+        category: MessageCategory::SafetyIncident,
+        confidence: 'high'
+    );
+
+    $result = $router->route($message, $classification);
 
     expect($result['workflow']['action'])->toBe('notify_supervisor_urgent');
     expect($result['workflow']['priority'])->toBe('critical');
@@ -28,15 +31,19 @@ it('routes safety incident to urgent notification workflow', function () {
 it('routes question to AI agent with RAG', function () {
     $router = new WorkflowRouter;
 
-    $classification = ['category' => 'question'];
-
     $message = new ParsedMessage(
         from: '353861234567',
         type: MessageType::Text,
         body: 'What PPE is required?'
     );
 
-    $result = $router->route($classification, $message);
+    $classification = new ClassificationResult(
+        success: true,
+        category: MessageCategory::Question,
+        confidence: 'high'
+    );
+
+    $result = $router->route($message, $classification);
 
     expect($result['workflow']['action'])->toBe('route_to_ai_agent');
     expect($result['workflow']['use_rag'])->toBeTrue();
@@ -45,15 +52,19 @@ it('routes question to AI agent with RAG', function () {
 it('routes material request to procurement workflow', function () {
     $router = new WorkflowRouter;
 
-    $classification = ['category' => 'material_request'];
-
     $message = new ParsedMessage(
         from: '353861234567',
         type: MessageType::Text,
         body: 'Need more cement'
     );
 
-    $result = $router->route($classification, $message);
+    $classification = new ClassificationResult(
+        success: true,
+        category: MessageCategory::MaterialRequest,
+        confidence: 'high'
+    );
+
+    $result = $router->route($message, $classification);
 
     expect($result['workflow']['action'])->toBe('forward_to_procurement');
     expect($result['workflow']['priority'])->toBe('normal');
@@ -63,15 +74,19 @@ it('routes material request to procurement workflow', function () {
 it('routes site note to timeline logging workflow', function () {
     $router = new WorkflowRouter;
 
-    $classification = ['category' => 'site_note'];
-
     $message = new ParsedMessage(
         from: '353861234567',
         type: MessageType::Text,
         body: 'Site is clean today'
     );
 
-    $result = $router->route($classification, $message);
+    $classification = new ClassificationResult(
+        success: true,
+        category: MessageCategory::SiteNote,
+        confidence: 'high'
+    );
+
+    $result = $router->route($message, $classification);
 
     expect($result['workflow']['action'])->toBe('log_to_timeline');
     expect($result['workflow']['priority'])->toBe('low');
@@ -81,15 +96,19 @@ it('routes site note to timeline logging workflow', function () {
 it('routes unknown category to manual review', function () {
     $router = new WorkflowRouter;
 
-    $classification = ['category' => 'unknown'];
-
     $message = new ParsedMessage(
         from: '353861234567',
         type: MessageType::Text,
         body: 'Some message'
     );
 
-    $result = $router->route($classification, $message);
+    $classification = new ClassificationResult(
+        success: true,
+        category: MessageCategory::Unknown,
+        confidence: 'high'
+    );
+
+    $result = $router->route($message, $classification);
 
     expect($result['workflow']['action'])->toBe('manual_review');
     expect($result['workflow']['priority'])->toBe('low');

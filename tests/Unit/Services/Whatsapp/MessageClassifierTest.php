@@ -1,15 +1,16 @@
 <?php
 
+use App\DataTransferObjects\ClassificationResult;
 use App\Enums\MessageCategory;
 use App\Services\Whatsapp\MessageClassifier;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-it('constructs with default config values', function () {
+it('constructs with custom config values', function () {
     Config::set('services.ollama', [
         'url' => 'http://localhost:11434',
-        'model' => 'llama3.2:latest',
+        'model' => 'custom-model',
         'timeout' => 30,
         'temperature' => 0.1,
         'response_length' => 50,
@@ -24,29 +25,8 @@ it('constructs with default config values', function () {
 
     $result = $classifier->classify('test message');
 
-    expect($result['success'])->toBeTrue();
-    expect($result['model_used'])->toBe('llama3.2:latest');
-});
-
-it('constructs with custom config values', function () {
-    Config::set('services.ollama', [
-        'url' => 'http://custom:8080',
-        'model' => 'custom-model',
-        'timeout' => 60,
-        'temperature' => 0.5,
-        'response_length' => 100,
-    ]);
-
-    $classifier = new MessageClassifier;
-
-    Http::fake([
-        'custom:8080/api/generate' => Http::response(['response' => '{"category":"'.MessageCategory::SiteNote->value.'","confidence":"high","reason":"Test"}'], 200),
-    ]);
-
-    $result = $classifier->classify('test message');
-
-    expect($result['success'])->toBeTrue();
-    expect($result['model_used'])->toBe('custom-model');
+    expect($result->success)->toBeTrue()
+        ->and($result->modelUsed)->toBe('custom-model');
 });
 
 it('builds classification prompt correctly', function () {
@@ -56,14 +36,14 @@ it('builds classification prompt correctly', function () {
 
     $prompt = $method->invoke($classifier, 'Test message');
 
-    expect($prompt)->toContain('Test message');
-    expect($prompt)->toContain(MessageCategory::SafetyIncident->value);
-    expect($prompt)->toContain(MessageCategory::MaterialRequest->value);
-    expect($prompt)->toContain(MessageCategory::Question->value);
-    expect($prompt)->toContain(MessageCategory::SiteNote->value);
-    expect($prompt)->toContain(MessageCategory::Other->value);
-    expect($prompt)->toContain(MessageCategory::Unknown->value);
-    expect($prompt)->toContain('"category": "one_of_the_categories_above"');
+    expect($prompt)->toContain('Test message')
+        ->and($prompt)->toContain(MessageCategory::SafetyIncident->value)
+        ->and($prompt)->toContain(MessageCategory::MaterialRequest->value)
+        ->and($prompt)->toContain(MessageCategory::Question->value)
+        ->and($prompt)->toContain(MessageCategory::SiteNote->value)
+        ->and($prompt)->toContain(MessageCategory::Other->value)
+        ->and($prompt)->toContain(MessageCategory::Unknown->value)
+        ->and($prompt)->toContain('"category": "one_of_the_categories_above"');
 });
 
 it('parses valid classification response', function () {
@@ -147,22 +127,22 @@ it('classifies message successfully', function () {
     ]);
 
     $classifier = new MessageClassifier;
+    $rawResponse = '{"category":"'.MessageCategory::MaterialRequest->value.'","confidence":"high","reason":"Needs supplies"}';
 
     Http::fake([
         'localhost:11434/api/generate' => Http::response([
-            'response' => '{"category":"'.MessageCategory::MaterialRequest->value.'","confidence":"high","reason":"Needs supplies"}',
+            'response' => $rawResponse,
         ], 200),
     ]);
 
     $result = $classifier->classify('Need more cement');
 
-    expect($result)->toBe([
-        'success' => true,
-        'category' => MessageCategory::MaterialRequest->value,
-        'confidence' => 'high',
-        'raw_response' => '{"category":"'.MessageCategory::MaterialRequest->value.'","confidence":"high","reason":"Needs supplies"}',
-        'model_used' => 'llama3.2:latest',
-    ]);
+    expect($result)->toBeInstanceOf(ClassificationResult::class)
+        ->and($result->success)->toBeTrue()
+        ->and($result->category)->toBe(MessageCategory::MaterialRequest)
+        ->and($result->confidence)->toBe('high')
+        ->and($result->rawResponse)->toBe($rawResponse)
+        ->and($result->modelUsed)->toBe('llama3.2:latest');
 });
 
 it('handles HTTP failure in classification', function () {
@@ -182,12 +162,11 @@ it('handles HTTP failure in classification', function () {
 
     $result = $classifier->classify('Test message');
 
-    expect($result)->toBe([
-        'success' => false,
-        'category' => 'unknown',
-        'confidence' => 0,
-        'error' => 'Ollama API error: 500',
-    ]);
+    expect($result)->toBeInstanceOf(ClassificationResult::class)
+        ->and($result->success)->toBeFalse()
+        ->and($result->category)->toBe(MessageCategory::Unknown)
+        ->and($result->confidence)->toBe('unknown')
+        ->and($result->error)->toBe('Ollama API error: 500');
 
     Log::shouldHaveReceived('error')->once();
 });
@@ -209,8 +188,10 @@ it('handles exception in classification', function () {
 
     $result = $classifier->classify('Test message');
 
-    expect($result['success'])->toBeTrue();
-    expect($result['category'])->toBe('unknown'); // Since parsing fails
+    expect($result)->toBeInstanceOf(ClassificationResult::class)
+        ->and($result->success)->toBeTrue()
+        ->and($result->category)->toBe(MessageCategory::Unknown)
+        ->and($result->confidence)->toBe('low');
 });
 
 it('handles empty message', function () {
@@ -228,16 +209,18 @@ it('handles empty message', function () {
 
     $result = $classifier->classify('');
 
-    expect($result['success'])->toBeTrue();
-    expect($result['category'])->toBe(MessageCategory::Other->value);
+    expect($result)->toBeInstanceOf(ClassificationResult::class)
+        ->and($result->success)->toBeTrue()
+        ->and($result->category)->toBe(MessageCategory::Other)
+        ->and($result->confidence)->toBe('medium');
 });
 
 dataset('testMessages', [
-    MessageCategory::SafetyIncident->value => ['Just saw a worker not wearing a hard hat in zone 3', MessageCategory::SafetyIncident->value],
-    MessageCategory::MaterialRequest->value => ['Need 10 more bags of cement delivered tomorrow', MessageCategory::MaterialRequest->value],
-    MessageCategory::Question->value => ['What time does the safety inspection start?', MessageCategory::Question->value],
-    MessageCategory::SiteNote->value => ['Completed foundation work on building A today', MessageCategory::SiteNote->value],
-    MessageCategory::Other->value => ['Lunch break in 30 minutes', MessageCategory::Other->value],
+    MessageCategory::SafetyIncident->value => ['Just saw a worker not wearing a hard hat in zone 3', MessageCategory::SafetyIncident],
+    MessageCategory::MaterialRequest->value => ['Need 10 more bags of cement delivered tomorrow', MessageCategory::MaterialRequest],
+    MessageCategory::Question->value => ['What time does the safety inspection start?', MessageCategory::Question],
+    MessageCategory::SiteNote->value => ['Completed foundation work on building A today', MessageCategory::SiteNote],
+    MessageCategory::Other->value => ['Lunch break in 30 minutes', MessageCategory::Other],
 ]);
 
 it('classifies sample messages', function ($message, $expectedCategory) {
@@ -250,7 +233,7 @@ it('classifies sample messages', function ($message, $expectedCategory) {
     $classifier = new MessageClassifier;
 
     // Mock response based on message, but since real LLM, for unit we mock to expected
-    $mockResponse = '{"category":"'.$expectedCategory.'","confidence":"high","reason":"Test"}';
+    $mockResponse = '{"category":"'.$expectedCategory->value.'","confidence":"high","reason":"Test"}';
 
     Http::fake([
         'localhost:11434/api/generate' => Http::response(['response' => $mockResponse], 200),
@@ -258,6 +241,7 @@ it('classifies sample messages', function ($message, $expectedCategory) {
 
     $result = $classifier->classify($message);
 
-    expect($result['success'])->toBeTrue();
-    expect($result['category'])->toBe($expectedCategory);
+    expect($result)->toBeInstanceOf(ClassificationResult::class)
+        ->and($result->success)->toBeTrue()
+        ->and($result->category)->toBe($expectedCategory);
 })->with('testMessages');
