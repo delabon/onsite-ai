@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace App\Services\Whatsapp;
 
+use App\DataTransferObjects\ParsedMessage;
 use Illuminate\Support\Facades\Log;
 
 final class MessageHandler
 {
-    public function storeMessage(array $parsedMessage, array $classification): void
+    public function storeMessage(ParsedMessage $parsedMessage, array $classification): void
     {
         // TODO: Save to database
 
         // For now, just log
         Log::info('Message stored', [
-            'from' => $parsedMessage['from'],
-            'type' => $parsedMessage['type'],
-            'message' => $parsedMessage['body'],
+            'from' => $parsedMessage->from,
+            'type' => $parsedMessage->type,
+            'message' => $parsedMessage->body,
             'category' => $classification['category'],
         ]);
     }

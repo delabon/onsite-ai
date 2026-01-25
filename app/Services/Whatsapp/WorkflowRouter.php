@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Whatsapp;
 
+use App\DataTransferObjects\ParsedMessage;
 use App\Enums\MessageCategory;
 use Illuminate\Support\Facades\Log;
 
@@ -12,7 +13,7 @@ final class WorkflowRouter
     /**
      * Route message to appropriate workflow based on classification
      */
-    public function route(array $classification, array $message): array
+    public function route(array $classification, ParsedMessage $parsedMessage): array
     {
         $category = $classification['category'];
 
@@ -49,12 +50,12 @@ final class WorkflowRouter
         Log::info('Workflow routed', [
             'category' => $category,
             'action' => $workflow['action'],
-            'from' => $message['from'],
+            'from' => $parsedMessage->from,
         ]);
 
         return [
             'workflow' => $workflow,
-            'message' => $message,
+            'message' => $parsedMessage->toArray(),
             'classification' => $classification,
         ];
     }

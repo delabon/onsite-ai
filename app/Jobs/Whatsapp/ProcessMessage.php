@@ -34,10 +34,10 @@ final class ProcessMessage implements ShouldQueue
         WorkflowRouter $router
     ): void {
         try {
-            $parsed = $parser->parse($this->payload);
-            $classification = $classifier->classify($parsed['body']);
-            $handler->storeMessage($parsed, $classification);
-            $workflow = $router->route($classification, $parsed);
+            $parsedMessage = $parser->parse($this->payload);
+            $classification = $classifier->classify($parsedMessage->body);
+            $handler->storeMessage($parsedMessage, $classification);
+            $workflow = $router->route($classification, $parsedMessage);
             $this->executeWorkflow($workflow);
 
             Log::info('WhatsApp message processed successfully', [

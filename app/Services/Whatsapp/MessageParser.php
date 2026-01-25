@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Whatsapp;
 
+use App\DataTransferObjects\ParsedMessage;
 use InvalidArgumentException;
 
 final class MessageParser
 {
-    public function parse(array $payload): array
+    public function parse(array $payload): ParsedMessage
     {
         $entry = $payload['entry'][0] ?? null;
 
@@ -47,10 +48,10 @@ final class MessageParser
             }
         }
 
-        return [
-            'from' => $from,
-            'type' => $type,
-            'body' => $body,
-        ];
+        return new ParsedMessage(
+            from: $from,
+            type: $type,
+            body: $body
+        );
     }
 }

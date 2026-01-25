@@ -1,5 +1,6 @@
 <?php
 
+use App\DataTransferObjects\ParsedMessage;
 use App\Services\Whatsapp\WorkflowRouter;
 
 it('routes safety incident to urgent notification workflow', function () {
@@ -10,10 +11,11 @@ it('routes safety incident to urgent notification workflow', function () {
         'confidence' => 'high',
     ];
 
-    $message = [
-        'from' => '353861234567',
-        'body' => 'Worker injured',
-    ];
+    $message = new ParsedMessage(
+        from: '353861234567',
+        type: 'text',
+        body: 'Worker injured'
+    );
 
     $result = $router->route($classification, $message);
 
@@ -26,7 +28,12 @@ it('routes question to AI agent with RAG', function () {
     $router = new WorkflowRouter;
 
     $classification = ['category' => 'question'];
-    $message = ['from' => '353861234567', 'body' => 'What PPE is required?'];
+
+    $message = new ParsedMessage(
+        from: '353861234567',
+        type: 'text',
+        body: 'What PPE is required?'
+    );
 
     $result = $router->route($classification, $message);
 
@@ -38,7 +45,12 @@ it('routes material request to procurement workflow', function () {
     $router = new WorkflowRouter;
 
     $classification = ['category' => 'material_request'];
-    $message = ['from' => '353861234567', 'body' => 'Need more cement'];
+
+    $message = new ParsedMessage(
+        from: '353861234567',
+        type: 'text',
+        body: 'Need more cement'
+    );
 
     $result = $router->route($classification, $message);
 
@@ -51,7 +63,12 @@ it('routes site note to timeline logging workflow', function () {
     $router = new WorkflowRouter;
 
     $classification = ['category' => 'site_note'];
-    $message = ['from' => '353861234567', 'body' => 'Site is clean today'];
+
+    $message = new ParsedMessage(
+        from: '353861234567',
+        type: 'text',
+        body: 'Site is clean today'
+    );
 
     $result = $router->route($classification, $message);
 
@@ -64,7 +81,12 @@ it('routes unknown category to manual review', function () {
     $router = new WorkflowRouter;
 
     $classification = ['category' => 'unknown'];
-    $message = ['from' => '353861234567', 'body' => 'Some message'];
+
+    $message = new ParsedMessage(
+        from: '353861234567',
+        type: 'text',
+        body: 'Some message'
+    );
 
     $result = $router->route($classification, $message);
 

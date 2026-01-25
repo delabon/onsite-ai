@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\DataTransferObjects\ParsedMessage;
 use App\Services\Whatsapp\MessageParser;
 
 it('parses a text message correctly', function () {
@@ -12,15 +13,12 @@ it('parses a text message correctly', function () {
         associative: true
     );
 
-    $result = $parser->parse($payload);
+    $parsedMessage = $parser->parse($payload);
 
-    expect($result)->toBeArray()
-        ->toHaveKey('from')
-        ->toHaveKey('type')
-        ->toHaveKey('body')
-        ->and($result['from'])->toBe('353861234567')
-        ->and($result['type'])->toBe('text')
-        ->and($result['body'])->toBe('Worker fell from scaffolding at Site A');
+    expect($parsedMessage)->toBeInstanceOf(ParsedMessage::class)
+        ->and($parsedMessage->from)->toBe('353861234567')
+        ->and($parsedMessage->type)->toBe('text')
+        ->and($parsedMessage->body)->toBe('Worker fell from scaffolding at Site A');
 });
 
 it('throws exception for missing entry', function () {
@@ -143,11 +141,9 @@ it('parses message with whitespace in body', function () {
 
     $result = $parser->parse($payload);
 
-    expect($result)->toBe([
-        'from' => '123',
-        'type' => 'text',
-        'body' => 'Hello World',
-    ]);
+    expect($result->from)->toBe('123')
+        ->and($result->type)->toBe('text')
+        ->and($result->body)->toBe('Hello World');
 });
 
 it('parses non-text message correctly', function () {
@@ -177,11 +173,9 @@ it('parses non-text message correctly', function () {
 
     $result = $parser->parse($payload);
 
-    expect($result)->toBe([
-        'from' => '123',
-        'type' => 'image',
-        'body' => '',
-    ]);
+    expect($result->from)->toBe('123')
+        ->and($result->type)->toBe('image')
+        ->and($result->body)->toBe('');
 });
 
 it('handles missing optional fields', function () {
@@ -210,9 +204,7 @@ it('handles missing optional fields', function () {
 
     $result = $parser->parse($payload);
 
-    expect($result)->toBe([
-        'from' => '',
-        'type' => 'text',
-        'body' => 'Test message',
-    ]);
+    expect($result->from)->toBe('')
+        ->and($result->type)->toBe('text')
+        ->and($result->body)->toBe('Test message');
 });
