@@ -2,6 +2,7 @@
 
 use App\DataTransferObjects\ClassificationResult;
 use App\DataTransferObjects\ParsedMessage;
+use App\Enums\Confidence;
 use App\Enums\MessageCategory;
 use App\Enums\MessageType;
 use App\Services\Whatsapp\WorkflowRouter;
@@ -18,7 +19,7 @@ it('routes safety incident to urgent notification workflow', function () {
     $classification = new ClassificationResult(
         success: true,
         category: MessageCategory::SafetyIncident,
-        confidence: 'high'
+        confidence: Confidence::High
     );
 
     $result = $router->route($message, $classification);
@@ -40,7 +41,7 @@ it('routes question to AI agent with RAG', function () {
     $classification = new ClassificationResult(
         success: true,
         category: MessageCategory::Question,
-        confidence: 'high'
+        confidence: Confidence::High
     );
 
     $result = $router->route($message, $classification);
@@ -61,7 +62,7 @@ it('routes material request to procurement workflow', function () {
     $classification = new ClassificationResult(
         success: true,
         category: MessageCategory::MaterialRequest,
-        confidence: 'high'
+        confidence: Confidence::High
     );
 
     $result = $router->route($message, $classification);
@@ -83,7 +84,7 @@ it('routes site note to timeline logging workflow', function () {
     $classification = new ClassificationResult(
         success: true,
         category: MessageCategory::SiteNote,
-        confidence: 'high'
+        confidence: Confidence::High
     );
 
     $result = $router->route($message, $classification);
@@ -105,7 +106,7 @@ it('routes unknown category to manual review', function () {
     $classification = new ClassificationResult(
         success: true,
         category: MessageCategory::Unknown,
-        confidence: 'high'
+        confidence: Confidence::High
     );
 
     $result = $router->route($message, $classification);

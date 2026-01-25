@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DataTransferObjects;
 
+use App\Enums\Confidence;
 use App\Enums\MessageCategory;
 
 final readonly class ClassificationResult
@@ -11,7 +12,7 @@ final readonly class ClassificationResult
     public function __construct(
         public bool $success,
         public MessageCategory $category,
-        public string $confidence,
+        public Confidence $confidence,
         public string $rawResponse = '',
         public string $modelUsed = '',
         public string $error = ''
@@ -22,6 +23,7 @@ final readonly class ClassificationResult
     {
         $arr = get_object_vars($this);
         $arr['category'] = $this->category->value;
+        $arr['confidence'] = $this->confidence->value;
 
         return $arr;
     }

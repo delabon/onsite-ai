@@ -1,6 +1,7 @@
 <?php
 
 use App\DataTransferObjects\ClassificationResult;
+use App\Enums\Confidence;
 use App\Enums\MessageCategory;
 use App\Services\Whatsapp\MessageClassifier;
 use Illuminate\Support\Facades\Config;
@@ -140,7 +141,7 @@ it('classifies message successfully', function () {
     expect($result)->toBeInstanceOf(ClassificationResult::class)
         ->and($result->success)->toBeTrue()
         ->and($result->category)->toBe(MessageCategory::MaterialRequest)
-        ->and($result->confidence)->toBe('high')
+        ->and($result->confidence)->toBe(Confidence::High)
         ->and($result->rawResponse)->toBe($rawResponse)
         ->and($result->modelUsed)->toBe('llama3.2:latest');
 });
@@ -165,7 +166,7 @@ it('handles HTTP failure in classification', function () {
     expect($result)->toBeInstanceOf(ClassificationResult::class)
         ->and($result->success)->toBeFalse()
         ->and($result->category)->toBe(MessageCategory::Unknown)
-        ->and($result->confidence)->toBe('unknown')
+        ->and($result->confidence)->toBe(Confidence::Unknown)
         ->and($result->error)->toBe('Ollama API error: 500');
 
     Log::shouldHaveReceived('error')->once();
@@ -191,7 +192,7 @@ it('handles exception in classification', function () {
     expect($result)->toBeInstanceOf(ClassificationResult::class)
         ->and($result->success)->toBeTrue()
         ->and($result->category)->toBe(MessageCategory::Unknown)
-        ->and($result->confidence)->toBe('low');
+        ->and($result->confidence)->toBe(Confidence::Low);
 });
 
 it('handles empty message', function () {
@@ -212,7 +213,7 @@ it('handles empty message', function () {
     expect($result)->toBeInstanceOf(ClassificationResult::class)
         ->and($result->success)->toBeTrue()
         ->and($result->category)->toBe(MessageCategory::Other)
-        ->and($result->confidence)->toBe('medium');
+        ->and($result->confidence)->toBe(Confidence::Medium);
 });
 
 dataset('testMessages', [

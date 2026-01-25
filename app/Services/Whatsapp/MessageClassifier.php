@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Whatsapp;
 
 use App\DataTransferObjects\ClassificationResult;
+use App\Enums\Confidence;
 use App\Enums\MessageCategory;
 use Exception;
 use Illuminate\Support\Facades\Http;
@@ -60,7 +61,7 @@ final class MessageClassifier
             return new ClassificationResult(
                 success: true,
                 category: MessageCategory::from($classification['category']),
-                confidence: $classification['confidence'],
+                confidence: Confidence::from($classification['confidence']),
                 rawResponse: $result['response'],
                 modelUsed: $this->ollamaLlm
             );
@@ -70,7 +71,7 @@ final class MessageClassifier
             return new ClassificationResult(
                 success: false,
                 category: MessageCategory::Unknown,
-                confidence: 'unknown',
+                confidence: Confidence::Unknown,
                 error: $e->getMessage(),
             );
         }
