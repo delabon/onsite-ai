@@ -80,7 +80,7 @@ jobs:
           ollama list || true
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v4
+        uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
           tools: composer:v2
@@ -140,6 +140,7 @@ jobs:
           DB_USERNAME: laravel
           DB_PASSWORD: password
 
+          # intentionally omitted DATABASE_URL to avoid parallel test rewrite issues
           CACHE_DRIVER: array
           SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
