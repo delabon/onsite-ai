@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Whatsapp;
 
 use App\DataTransferObjects\ParsedMessage;
+use App\Enums\MessageType;
 use InvalidArgumentException;
 
 final class MessageParser
@@ -37,10 +38,10 @@ final class MessageParser
         }
 
         $from = $message['from'] ?? '';
-        $type = $message['type'] ?? '';
+        $type = MessageType::from($message['type'] ?? '');
         $body = '';
 
-        if ($type === 'text' && isset($message['text']['body'])) {
+        if ($type === MessageType::Text && isset($message['text']['body'])) {
             $body = trim($message['text']['body']);
 
             if (empty($body)) {

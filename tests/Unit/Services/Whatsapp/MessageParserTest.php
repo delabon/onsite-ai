@@ -3,10 +3,11 @@
 declare(strict_types=1);
 
 use App\DataTransferObjects\ParsedMessage;
+use App\Enums\MessageType;
 use App\Services\Whatsapp\MessageParser;
 
 it('parses a text message correctly', function () {
-    $parser = new MessageParser;
+    $parser = new MessageParser();
 
     $payload = json_decode(
         json: file_get_contents(__DIR__.'/../../../Payloads/Whatsapp/text-message.json'),
@@ -17,8 +18,27 @@ it('parses a text message correctly', function () {
 
     expect($parsedMessage)->toBeInstanceOf(ParsedMessage::class)
         ->and($parsedMessage->from)->toBe('353861234567')
-        ->and($parsedMessage->type)->toBe('text')
+        ->and($parsedMessage->type)->toBe(MessageType::Text)
         ->and($parsedMessage->body)->toBe('Worker fell from scaffolding at Site A');
+});
+
+test('to array', function () {
+    $parser = new MessageParser();
+
+    $payload = json_decode(
+        json: file_get_contents(__DIR__.'/../../../Payloads/Whatsapp/text-message.json'),
+        associative: true
+    );
+
+    $parsedMessage = $parser->parse($payload)->toArray();
+
+    expect($parsedMessage)->toBeArray()
+        ->toHaveKey('from')
+        ->toHaveKey('type')
+        ->toHaveKey('body')
+        ->and($parsedMessage['from'])->toBe('353861234567')
+        ->and($parsedMessage['type'])->toBe(MessageType::Text->value)
+        ->and($parsedMessage['body'])->toBe('Worker fell from scaffolding at Site A');
 });
 
 it('throws exception for missing entry', function () {
@@ -142,40 +162,8 @@ it('parses message with whitespace in body', function () {
     $result = $parser->parse($payload);
 
     expect($result->from)->toBe('123')
-        ->and($result->type)->toBe('text')
+        ->and($result->type)->toBe(MessageType::Text)
         ->and($result->body)->toBe('Hello World');
-});
-
-it('parses non-text message correctly', function () {
-    $parser = new MessageParser;
-
-    $payload = [
-        'entry' => [
-            [
-                'changes' => [
-                    [
-                        'value' => [
-                            'messages' => [
-                                [
-                                    'from' => '123',
-                                    'type' => 'image',
-                                    'image' => [
-                                        'id' => 'image_id',
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ],
-    ];
-
-    $result = $parser->parse($payload);
-
-    expect($result->from)->toBe('123')
-        ->and($result->type)->toBe('image')
-        ->and($result->body)->toBe('');
 });
 
 it('handles missing optional fields', function () {
@@ -205,6 +193,35 @@ it('handles missing optional fields', function () {
     $result = $parser->parse($payload);
 
     expect($result->from)->toBe('')
-        ->and($result->type)->toBe('text')
+        ->and($result->type)->toBe(MessageType::Text)
         ->and($result->body)->toBe('Test message');
+});
+
+it('throws exception for invalid type', function () {
+    $parser = new MessageParser;
+
+    $payload = [
+        'entry' => [
+            [
+                'changes' => [
+                    [
+                        'value' => [
+                            'messages' => [
+                                [
+                                    'from' => '123',
+                                    'type' => 'invalid-type here',
+                                    'text' => [
+                                        'body' => 'Hello World',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    expect(static fn () => $parser->parse($payload))
+        ->toThrow(ValueError::class);
 });

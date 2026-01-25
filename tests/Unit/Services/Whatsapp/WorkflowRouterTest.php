@@ -1,6 +1,7 @@
 <?php
 
 use App\DataTransferObjects\ParsedMessage;
+use App\Enums\MessageType;
 use App\Services\Whatsapp\WorkflowRouter;
 
 it('routes safety incident to urgent notification workflow', function () {
@@ -13,7 +14,7 @@ it('routes safety incident to urgent notification workflow', function () {
 
     $message = new ParsedMessage(
         from: '353861234567',
-        type: 'text',
+        type: MessageType::Text,
         body: 'Worker injured'
     );
 
@@ -31,7 +32,7 @@ it('routes question to AI agent with RAG', function () {
 
     $message = new ParsedMessage(
         from: '353861234567',
-        type: 'text',
+        type: MessageType::Text,
         body: 'What PPE is required?'
     );
 
@@ -48,7 +49,7 @@ it('routes material request to procurement workflow', function () {
 
     $message = new ParsedMessage(
         from: '353861234567',
-        type: 'text',
+        type: MessageType::Text,
         body: 'Need more cement'
     );
 
@@ -66,7 +67,7 @@ it('routes site note to timeline logging workflow', function () {
 
     $message = new ParsedMessage(
         from: '353861234567',
-        type: 'text',
+        type: MessageType::Text,
         body: 'Site is clean today'
     );
 
@@ -84,7 +85,7 @@ it('routes unknown category to manual review', function () {
 
     $message = new ParsedMessage(
         from: '353861234567',
-        type: 'text',
+        type: MessageType::Text,
         body: 'Some message'
     );
 
