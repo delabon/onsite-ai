@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        php-version: ['8.4', '8.5']
+        php-version: ['8.5']
 
     services:
       postgres:
@@ -66,9 +66,9 @@ jobs:
             ${{ runner.os }}-ollama-
 
       - name: Setup Ollama
-        uses: ai-action/setup-ollama@v2
+        uses: ai-action/setup-ollama@v2.0.5
         with:
-          version: latest
+          version: '0.15.0'
 
       - name: Pull and Start Ollama
         run: |
