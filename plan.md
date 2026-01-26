@@ -35,7 +35,7 @@ Worker's Phone (WhatsApp)
     - [ ] `users` table (field workers)
     - [ ] `projects` table (construction sites)
     - [ ] `site_events` table (logged incidents/notes)
-    - [ ] `whatsapp_messages` table (message history)
+    - [ ] `messages` table (message history)
     - [ ] `ai_conversations` table (conversation threads)
 - [ ] Create Eloquent models with relationships
 - [ ] Set up multi-tenancy (likely using `organization_id` scope)
@@ -98,7 +98,7 @@ Core table for logged incidents:
 - updated_at (timestamp)
 ```
 
-### 5. `whatsapp_messages` Table
+### 5. `messages` Table
 Message history:
 ```sql
 - id (bigint, primary key)
@@ -135,12 +135,12 @@ Conversation threads:
 - `organizations` → `users` (one-to-many)
 - `organizations` → `projects` (one-to-many)
 - `organizations` → `site_events` (one-to-many)
-- `organizations` → `whatsapp_messages` (one-to-many)
+- `organizations` → `messages` (one-to-many)
 - `organizations` → `ai_conversations` (one-to-many)
 - `projects` → `site_events` (one-to-many)
 - `users` → `site_events` (one-to-many)
-- `users` → `whatsapp_messages` (one-to-many)
-- `ai_conversations` → `whatsapp_messages` (one-to-many)
+- `users` → `messages` (one-to-many)
+- `ai_conversations` → `messages` (one-to-many)
 
 ### Authentication & Authorization
 - [ ] Implement Filament authentication

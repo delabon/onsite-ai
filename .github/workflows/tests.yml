@@ -2,32 +2,90 @@ name: tests
 
 on:
   push:
-    branches:
-      - develop
-      - main
+    branches: [develop, main]
   pull_request:
-    branches:
-      - develop
-      - main
+    branches: [develop, main]
 
 jobs:
   ci:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     environment: Testing
+
+    # tune this to change parallel processes
+    env:
+      PARALLEL_PROCESSES: 4
+
     strategy:
       matrix:
-        php-version: ['8.4', '8.5']
+        php-version: ['8.5']
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: laravel_test
+          POSTGRES_USER: laravel
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U laravel"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Cache Node
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', '**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache Ollama
+        uses: actions/cache@v4
+        with:
+          path: ~/.ollama
+          key: ${{ runner.os }}-ollama-${{ hashFiles('config/services.php') }}
+          restore-keys: |
+            ${{ runner.os }}-ollama-
+
+      - name: Setup Ollama
+        uses: ai-action/setup-ollama@v2.0.5
+        with:
+          version: '0.15.0'
+
+      - name: Pull and Start Ollama
+        run: |
+          ollama pull llama3.2:latest || true
+          nohup ollama serve > /tmp/ollama.log 2>&1 &
+          sleep 8
+          tail -n +1 /tmp/ollama.log | sed -n '1,200p' || true
+          curl -f http://localhost:11434/api/version
+          ollama list || true
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
           tools: composer:v2
-          coverage: xdebug
+          coverage: none
+          extensions: pdo_pgsql
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -35,22 +93,54 @@ jobs:
           node-version: '22'
 
       - name: Install Node Dependencies
-        run: npm i
+        run: npm ci
 
-      - name: Add Flux Credentials Loaded From ENV
-        run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
-
-      - name: Install Dependencies
+      - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        env:
+          COMPOSER_MEMORY_LIMIT: -1
 
-      - name: Copy Environment File
+      - name: Copy .env
         run: cp .env.example .env
 
-      - name: Generate Application Key
-        run: php artisan key:generate
+      - name: Generate APP_KEY
+        run: php artisan key:generate --ansi
+
+      - name: Wait for Postgres to be ready
+        run: |
+          for i in {1..30}; do
+            docker run --rm --network host postgres:18 pg_isready -h 127.0.0.1 -p 5432 -U laravel && break
+            sleep 1
+          done
 
       - name: Build Assets
         run: npm run build
 
-      - name: Run Tests
-        run: ./vendor/bin/pest
+      - name: Run Migrations (base)
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: laravel_test
+          DB_USERNAME: laravel
+          DB_PASSWORD: password
+
+      - name: Run Tests (parallel)
+        run: php artisan test --parallel --processes=${{ env.PARALLEL_PROCESSES }} --colors
+        env:
+          APP_ENV: testing
+          APP_DEBUG: 'false'
+          APP_URL: http://127.0.0.1:8000
+
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: laravel_test
+          DB_USERNAME: laravel
+          DB_PASSWORD: password
+
+          # intentionally omitted DATABASE_URL to avoid parallel test rewrite issues
+          CACHE_DRIVER: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync

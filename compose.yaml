@@ -25,6 +25,7 @@ services:
             - pgsql
             - redis
             - mailpit
+            - ollama
     pgsql:
         image: 'postgres:18-alpine'
         ports:
@@ -72,6 +73,16 @@ services:
             - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
         networks:
             - sail
+    ollama:
+        image: 'ollama/ollama:latest'
+        ports:
+            - '${FORWARD_OLLAMA_PORT:-11434}:11434'
+        environment:
+            OLLAMA_HOST: '0.0.0.0'
+        volumes:
+            - 'sail-ollama:/root/.ollama'
+        networks:
+            - sail
 networks:
     sail:
         driver: bridge
@@ -79,4 +90,6 @@ volumes:
     sail-pgsql:
         driver: local
     sail-redis:
+        driver: local
+    sail-ollama:
         driver: local
