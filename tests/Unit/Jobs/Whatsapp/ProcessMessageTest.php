@@ -32,7 +32,7 @@ it('processes message successfully', function () {
         new MessageParser,
         new MessageClassifier,
         new MessageRepository,
-        new WorkflowRouter
+        app(WorkflowRouter::class)
     );
 });
 
@@ -49,6 +49,6 @@ it('handles parsing failure', function () {
         new MessageParser,
         new MessageClassifier,
         new MessageRepository,
-        new WorkflowRouter
+        app(WorkflowRouter::class)
     );
 });

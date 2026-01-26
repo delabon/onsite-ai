@@ -2,6 +2,13 @@
 
 namespace App\Providers;
 
+use App\Enums\MessageCategory;
+use App\Services\Whatsapp\Handlers\ManualReviewHandler;
+use App\Services\Whatsapp\Handlers\MaterialRequestHandler;
+use App\Services\Whatsapp\Handlers\QuestionHandler;
+use App\Services\Whatsapp\Handlers\SafetyIncidentHandler;
+use App\Services\Whatsapp\Handlers\SiteNoteHandler;
+use App\Services\Whatsapp\WorkflowRouter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +22,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(WorkflowRouter::class, function ($app) {
+            return new WorkflowRouter([
+                MessageCategory::SafetyIncident->value => $app->make(SafetyIncidentHandler::class),
+                MessageCategory::MaterialRequest->value => $app->make(MaterialRequestHandler::class),
+                MessageCategory::Question->value => $app->make(QuestionHandler::class),
+                MessageCategory::SiteNote->value => $app->make(SiteNoteHandler::class),
+                MessageCategory::Other->value => $app->make(ManualReviewHandler::class),
+                MessageCategory::Unknown->value => $app->make(ManualReviewHandler::class),
+            ]);
+        });
     }
 
     /**
