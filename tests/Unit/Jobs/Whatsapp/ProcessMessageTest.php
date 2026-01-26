@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\Log;
 
 it('processes message successfully', function () {
     Http::fake([
-        'http://ollama:11434/api/generate' => Http::response(['response' => '{"category":"question","confidence":"high","reason":"test"}'], 200),
+        config('services.ollama.url').'/api/generate' => Http::response([
+            'response' => '{"category":"question","confidence":"high","reason":"test"}'
+        ], 200),
     ]);
 
     $payload = json_decode(file_get_contents(__DIR__.'/../../../Payloads/Whatsapp/text-message.json'), true);

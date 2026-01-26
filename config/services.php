@@ -38,8 +38,8 @@ return [
     'ollama' => [
         'url' => env('OLLAMA_URL', 'http://ollama:11434'),
         'model' => env('OLLAMA_MODEL', 'llama3.2:latest'),
-        'timeout' => env('OLLAMA_TIMEOUT', 30),
-        'temperature' => env('OLLAMA_TEMPERATURE', 0.1), // Low temperature for consistent classification
-        'response_length' => env('OLLAMA_RESPONSE_LENGTH', 50), // Response length
+        'timeout' => (int) env('OLLAMA_TIMEOUT', 30),
+        'temperature' => (float) env('OLLAMA_TEMPERATURE', 0.1), // Low temperature for consistent classification
+        'response_length' => (int) env('OLLAMA_RESPONSE_LENGTH', 50), // Response length
     ],
 ];
