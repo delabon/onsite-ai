@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs\Whatsapp;
 
+use App\Repositories\MessageRepository;
 use App\Services\Whatsapp\MessageClassifier;
-use App\Services\Whatsapp\MessageHandler;
 use App\Services\Whatsapp\MessageParser;
 use App\Services\Whatsapp\WorkflowRouter;
 use Exception;
@@ -30,13 +30,13 @@ final class ProcessMessage implements ShouldQueue
     public function handle(
         MessageParser $parser,
         MessageClassifier $classifier,
-        MessageHandler $handler,
+        MessageRepository $messageRepository,
         WorkflowRouter $router
     ): void {
         try {
             $parsedMessage = $parser->parse($this->payload);
             $classification = $classifier->classify($parsedMessage->body);
-            $handler->storeMessage($parsedMessage, $classification);
+            $messageRepository->store($parsedMessage, $classification);
             $router->route($parsedMessage, $classification);
 
             Log::info('WhatsApp message processed successfully', [

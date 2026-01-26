@@ -67,7 +67,7 @@ it('routes material request to procurement workflow', function () {
         confidence: Confidence::High
     );
 
-    $result = $router->route($message, $classification);
+    $router->route($message, $classification);
 });
 
 it('routes site note to timeline logging workflow', function () {

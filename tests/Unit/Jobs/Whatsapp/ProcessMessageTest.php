@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Jobs\Whatsapp\ProcessMessage;
+use App\Repositories\MessageRepository;
 use App\Services\Whatsapp\MessageClassifier;
-use App\Services\Whatsapp\MessageHandler;
 use App\Services\Whatsapp\MessageParser;
 use App\Services\Whatsapp\WorkflowRouter;
 use Illuminate\Support\Facades\Http;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 it('processes message successfully', function () {
     Http::fake([
         config('services.ollama.url').'/api/generate' => Http::response([
-            'response' => '{"category":"question","confidence":"high","reason":"test"}'
+            'response' => '{"category":"question","confidence":"high","reason":"test"}',
         ], 200),
     ]);
 
@@ -31,7 +31,7 @@ it('processes message successfully', function () {
     $job->handle(
         new MessageParser,
         new MessageClassifier,
-        new MessageHandler,
+        new MessageRepository,
         new WorkflowRouter
     );
 });
@@ -48,7 +48,7 @@ it('handles parsing failure', function () {
     $job->handle(
         new MessageParser,
         new MessageClassifier,
-        new MessageHandler,
+        new MessageRepository,
         new WorkflowRouter
     );
 });
