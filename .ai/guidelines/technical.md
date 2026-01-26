@@ -39,6 +39,8 @@
 - Using Services in Controllers: if Service class is used only in ONE method of Controller, inject it directly into that method with type-hinting. If Service class is used in MULTIPLE methods of Controller, initialize it in Constructor.
 - Use return types in functions whenever possible, adding the full path to classname to the top in `use` section
 - Generate Enums always in the folder `app/Enums`, not in the main `app/` folder, unless instructed differently.
+- Use DTOs in the folder `app/DataTransferObjects`.
+- Use the Repository Pattern in the folder `app/Repositories`.
 
 ## Laravel instructions
 
