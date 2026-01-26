@@ -30,7 +30,7 @@ final class WebhookController extends Controller
 
         try {
             // Quick validation: ensure payload has basic structure
-            $parsed = $this->messageParser->parse($payload);
+            $this->messageParser->parse($payload);
         } catch (InvalidArgumentException $e) {
             Log::warning('Invalid WhatsApp payload', [
                 'message' => $e->getMessage(),

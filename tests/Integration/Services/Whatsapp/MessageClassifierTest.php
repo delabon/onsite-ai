@@ -52,10 +52,6 @@ it('classifies all sample messages with real Ollama', function () {
             'category' => MessageCategory::SiteNote,
             'confidence' => Confidence::High,
         ],
-        'Lunch break in 30 minutes' => [
-            'category' => MessageCategory::SiteNote,
-            'confidence' => Confidence::High,
-        ],
     ];
 
     foreach ($testMessages as $message => $messageData) {

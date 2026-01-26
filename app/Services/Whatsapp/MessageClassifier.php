@@ -119,7 +119,7 @@ PROMPT;
         if (empty($matches)) {
             return [
                 'category' => MessageCategory::Unknown->value,
-                'confidence' => 'low',
+                'confidence' => Confidence::Low->value,
                 'reason' => 'Failed to parse LLM response',
             ];
         }
@@ -135,16 +135,17 @@ PROMPT;
                 $category = MessageCategory::Other->value;
             }
 
+            $confidence = Confidence::tryFrom($data['confidence'] ?? 'medium') ?? Confidence::Medium;
+
             return [
                 'category' => $category,
-                'confidence' => $data['confidence'] ?? 'medium',
+                'confidence' => $confidence->value,
                 'reason' => $data['reason'] ?? 'No reason provided',
             ];
-
-        } catch (Exception $e) {
+        } catch (Exception) {
             return [
                 'category' => MessageCategory::Unknown->value,
-                'confidence' => 'low',
+                'confidence' => Confidence::Unknown->value,
                 'reason' => 'JSON parsing failed',
             ];
         }

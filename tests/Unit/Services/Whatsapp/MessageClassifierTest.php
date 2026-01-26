@@ -57,7 +57,7 @@ it('parses valid classification response', function () {
 
     expect($result)->toBe([
         'category' => MessageCategory::SafetyIncident->value,
-        'confidence' => 'high',
+        'confidence' => Confidence::High->value,
         'reason' => 'Test reason',
     ]);
 });
@@ -72,7 +72,7 @@ it('parses partial classification response', function () {
 
     expect($result)->toBe([
         'category' => MessageCategory::Question->value,
-        'confidence' => 'medium',
+        'confidence' => Confidence::Medium->value,
         'reason' => 'No reason provided',
     ]);
 });
@@ -97,8 +97,8 @@ it('handles non-JSON response', function () {
     $result = $method->invoke($classifier, $response);
 
     expect($result)->toBe([
-        'category' => 'unknown',
-        'confidence' => 'low',
+        'category' => MessageCategory::Unknown->value,
+        'confidence' => Confidence::Low->value,
         'reason' => 'Failed to parse LLM response',
     ]);
 });
@@ -112,8 +112,8 @@ it('handles malformed JSON response', function () {
     $result = $method->invoke($classifier, $response);
 
     expect($result)->toBe([
-        'category' => 'other',
-        'confidence' => 'medium',
+        'category' => MessageCategory::Other->value,
+        'confidence' => Confidence::Medium->value,
         'reason' => 'No reason provided',
     ]);
 });
